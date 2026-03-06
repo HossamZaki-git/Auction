@@ -26,7 +26,7 @@ namespace Auction.Hubs
         {
             this.auctionsManager = auctionsManager;
         }
-        public override async Task<object> OnConnectedAsync()
+        public override async Task OnConnectedAsync()
         {
             var auctions = await auctionsManager.GetAllAuctions();
             // Letting the client know the auctions data and their user id
@@ -35,7 +35,7 @@ namespace Auction.Hubs
             for (int i = 0; i < auctions.Count; i++)
                 await Groups.AddToGroupAsync(Context.ConnectionId, $"{i}");
 
-            return base.OnConnectedAsync();
+            await base.OnConnectedAsync();
         }
 
         public async Task Bid(string auctionID, double value)

@@ -1,0 +1,37 @@
+services:
+  redis-server:
+    image: redis:alpine
+    container_name: redisbackplan
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backendalpha:
+    build: .
+    container_name: backend1
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Redis__ConnectionString=redis-server:6379
+      - ASPNETCORE_HTTP_PORTS=8080
+    ports:
+      - "5001:8080"
+    depends_on:
+      redis-server:
+        condition: service_healthy
+
+  backendbeta:
+    build: .
+    container_name: backend2
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Redis__ConnectionString=redis-server:6379
+      - ASPNETCORE_HTTP_PORTS=8080
+    ports:
+      - "5002:8080"
+    depends_on:
+      redis-server:
+        condition: service_healthy
