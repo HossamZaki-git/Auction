@@ -58,11 +58,18 @@ if (app.Environment.IsDevelopment())
 // Seeding data
 using (var scope = app.Services.CreateScope())
 {
-    var manager = new AuctionsManager(
-        scope.ServiceProvider.GetRequiredService<IConnectionMultiplexer>(),
-        scope.ServiceProvider.GetRequiredService<IDistributedLockFactory>()
-    );
-    await manager.SeedAsync();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        var manager = scope.ServiceProvider.GetRequiredService<AuctionsManager>();
+        logger.LogInformation("Starting seeding auctions...");
+        await manager.SeedAsync();
+        logger.LogInformation("Seeding completed.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "An error occurred while seeding data.");
+    }
 }
 
 

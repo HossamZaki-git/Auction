@@ -18,21 +18,17 @@ namespace Auction.Utilities
         private readonly IDatabase db;
         private readonly IConnectionMultiplexer connectionMultiplexer;
         private readonly IDistributedLockFactory lockFactory;
+        private readonly ILogger<AuctionsManager> _logger;
 
-        public AuctionsManager(IConnectionMultiplexer connectionMultiplexer, IDistributedLockFactory lockFactory)
+        public AuctionsManager(IConnectionMultiplexer connectionMultiplexer, IDistributedLockFactory lockFactory, ILogger<AuctionsManager> logger)
         {
             db = connectionMultiplexer.GetDatabase();
             this.connectionMultiplexer = connectionMultiplexer;
             this.lockFactory = lockFactory;
+            _logger = logger;
         }
 
-        private bool isEmpty()
-        {
-            //                                          Getting the first and only server instance of redis
-            var server = connectionMultiplexer.GetServer(connectionMultiplexer.GetEndPoints()[0]);
-            // Getting the size of the database number 0
-            return server.DatabaseSize(0) == 0;
-        }
+        private bool isEmpty() => !db.KeyExists("0");
 
         public async Task SeedAsync()
         {
@@ -64,7 +60,7 @@ namespace Auction.Utilities
 
                             await db.HashSetAsync(auctionKey, auctionData);
                         }
-                        Console.WriteLine("Successfully seeded 3 auctions.");
+                        _logger.LogInformation("Successfully seeded 3 auctions.");
                     }
                 }
             }
@@ -73,8 +69,22 @@ namespace Auction.Utilities
 
         public async Task RestartAuctions()
         {
-            var server = connectionMultiplexer.GetServer(connectionMultiplexer.GetEndPoints()[0]);
-            await server.FlushDatabaseAsync(0);
+            // Some Redis providers (managed services) disable FLUSHDB (admin-only).
+            // Instead of calling FlushDatabase, enumerate keys and delete them so this works
+            // without admin privileges.
+            try
+            {
+                var endpoint = connectionMultiplexer.GetEndPoints()[0];
+                var server = connectionMultiplexer.GetServer(endpoint);
+
+                // Enumerate keys in DB 0 and delete them via IDatabase so we don't need admin
+                foreach (var key in server.Keys(database: 0))
+                    await db.KeyDeleteAsync(key);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Failed to clear database during RestartAuctions");
+            }
 
             await SeedAsync();
         }
