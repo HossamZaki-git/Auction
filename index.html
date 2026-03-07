@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distributed Live Auctions</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+</head>
+<body>
+
+    <header class="top-bar">
+        <div class="connection-panel">
+            <select id="serverSelect">
+                <option value="http://localhost:5001">Server 1 (Port 5001)</option>
+                <option value="http://localhost:5002">Server 2 (Port 5002)</option>
+            </select>
+            <button id="connectBtn" onclick="connectToServer()">Connect to Server</button>
+            <span id="connectionStatus" class="status-disconnected">Disconnected</span>
+        </div>
+        
+        <div class="user-panel">
+            <span>Your ID: <strong id="userIdDisplay">Not Connected</strong></span>
+            <button id="restartBtn" onclick="restartAuctions()" disabled class="btn-danger">Restart All Auctions</button>
+        </div>
+    </header>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <main>
+        <div id="auctionsContainer" class="auctions-grid">
+            </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

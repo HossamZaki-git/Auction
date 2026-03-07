@@ -36,12 +36,21 @@ builder.Services.AddSignalR()
 
 builder.Services.AddSingleton<AuctionsManager>();
 
+
 builder.Services.AddCors(options => {
     options.AddDefaultPolicy(policy => {
-        policy.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost") // Allowing any port on localhost
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+        policy.SetIsOriginAllowed(origin => {
+            // if its a local file, allow it
+            if (origin == "null") 
+                return true;
+
+            //  otherwise, check if the host is the localhost
+            return Uri.TryCreate(origin, UriKind.Absolute, out var uri)
+                   && uri.Host == "localhost";
+        })
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
     });
 });
 

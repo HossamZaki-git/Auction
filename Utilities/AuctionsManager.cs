@@ -53,7 +53,7 @@ namespace Auction.Utilities
 
                             var auctionData = new HashEntry[]
                             {
-                                new("EndingTime", DateTime.UtcNow.AddMinutes(5).ToString("o")), // ISO 8601 format
+                                new("EndingTime", DateTime.UtcNow.AddMinutes(5+i).ToString("o")), // ISO 8601 format
                                 new("highestValue", 0),
                                 new("WinnersIDs", winnersJson)
                             };
